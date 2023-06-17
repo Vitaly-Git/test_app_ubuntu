@@ -15,28 +15,32 @@ func main() {
 	fmt.Println("Starting service...")
 	go start_http_server()
 	waiting_for_gorutines_stops()
+	fmt.Println("Service stoped")
 }
 
 func start_http_server() {
 
 	http.HandleFunc("/", root_handler)
-	//http.ListenAndServe("localhost:8000", nil)
-
-	// ip, err := get_local_ip()
-	// fmt.Println(ip, err)
 
 	serviceIpAddr, err := GetOutboundIP()
-
 	if err != nil {
 		errorStr := fmt.Sprintf("IP address recognition error: %s", err)
+		fmt.Println(errorStr)
 		chEndService <- errorStr
 		return
 	}
 
 	servicePortAddr := "8000"
 	serviceAddress := fmt.Sprintf("%s:%s", serviceIpAddr, servicePortAddr)
+	fmt.Printf("Service starting on address: %s\n", serviceAddress)
 
-	http.ListenAndServe(serviceAddress, nil)
+	err = http.ListenAndServe(serviceAddress, nil)
+	if err != nil {
+		errorStr := fmt.Sprintf("Error opening listening port: %s", err)
+		fmt.Println(errorStr)
+		chEndService <- errorStr
+		return
+	}
 }
 
 func waiting_for_gorutines_stops() {
