@@ -10,6 +10,8 @@ import (
 
 func root_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
+	add_https_cros_header_for_between_domain_request(resp_writer)
+
 	var answer string = ""
 	var url_path string = r.URL.Path
 
@@ -43,6 +45,8 @@ func root_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 func ap_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
+	add_https_cros_header_for_between_domain_request(resp_writer)
+
 	numStr := r.URL.Query().Get("number")
 	num, err := strconv.ParseInt(numStr, 0, 64)
 
@@ -61,6 +65,8 @@ func ap_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 func gp2_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
+	add_https_cros_header_for_between_domain_request(resp_writer)
+
 	numStr := r.URL.Query().Get("number")
 	num, err := strconv.ParseInt(numStr, 0, 64)
 
@@ -78,6 +84,8 @@ func gp2_handler(resp_writer http.ResponseWriter, r *http.Request) {
 }
 
 func inc_handler(resp_writer http.ResponseWriter, r *http.Request) {
+
+	add_https_cros_header_for_between_domain_request(resp_writer)
 
 	numStr := r.URL.Query().Get("number")
 	num, err := strconv.ParseInt(numStr, 0, 64)
@@ -98,6 +106,8 @@ func inc_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 func exit_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
+	add_https_cros_header_for_between_domain_request(resp_writer)
+
 	var answer string = ""
 	var url_path string = r.URL.Path
 
@@ -111,6 +121,8 @@ func exit_handler(resp_writer http.ResponseWriter, r *http.Request) {
 }
 
 func autotest_start_handler(resp_writer http.ResponseWriter, r *http.Request) {
+
+	add_https_cros_header_for_between_domain_request(resp_writer)
 
 	var answer string = ""
 	var url_path string = r.URL.Path
@@ -128,6 +140,8 @@ func autotest_start_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 func autotest_stop_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
+	add_https_cros_header_for_between_domain_request(resp_writer)
+
 	var answer string = ""
 	var url_path string = r.URL.Path
 
@@ -142,6 +156,8 @@ func autotest_stop_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 func revers_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
+	add_https_cros_header_for_between_domain_request(resp_writer)
+
 	stringToRevers := r.URL.Query().Get("string")
 
 	answer := revers_string(stringToRevers)
@@ -154,6 +170,8 @@ func revers_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 func echo_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
+	add_https_cros_header_for_between_domain_request(resp_writer)
+
 	answer := r.URL.Query().Get("string")
 	fmt.Printf("Input param string: %s\n", answer)
 
@@ -162,6 +180,8 @@ func echo_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 }
 
 func timestamp_handler(resp_writer http.ResponseWriter, r *http.Request) {
+
+	add_https_cros_header_for_between_domain_request(resp_writer)
 
 	nanosec := time.Now().UnixNano()
 

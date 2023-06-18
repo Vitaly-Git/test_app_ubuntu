@@ -15,14 +15,19 @@ var succefulAppInit bool
 var serviceIpAddr net.IP
 var servicePortAddr string
 var serviceAddress string
+var serviceHttpAddress string
 
 var chEndService = make(chan string)
 var helpMap = make(map[string]string)
 var autotest_running bool
 
+var useHttps bool
+
 func init() {
 
 	succefulAppInit = true
+
+	useHttps = true
 
 	var err error
 
@@ -35,9 +40,20 @@ func init() {
 		return
 	}
 
-	servicePortAddr = "8000"
+	if useHttps {
+		servicePortAddr = "12443"
+	} else {
+		servicePortAddr = "12445"
+	}
 
 	serviceAddress = fmt.Sprintf("%s:%s", serviceIpAddr, servicePortAddr)
+
+	if useHttps {
+		serviceHttpAddress = fmt.Sprintf("https://%s", serviceAddress)
+	} else {
+		serviceHttpAddress = fmt.Sprintf("http://%s", serviceAddress)
+	}
+
 }
 
 func main() {
@@ -55,20 +71,29 @@ func main() {
 
 func start_http_server() {
 
-	fmt.Printf("Service starting on address: %s\n", serviceAddress)
+	fmt.Printf("Service starting: %s\n", serviceHttpAddress)
 
-	add_http_handler("/", root_handler, fmt.Sprintf("001. http://%s/,\t\t\t get descriptions of services", serviceAddress))
-	add_http_handler("/exit", exit_handler, fmt.Sprintf("002. http://%s/exit,\t\t\t shutdown service", serviceAddress))
-	add_http_handler("/ap", ap_handler, fmt.Sprintf("003. http://%s/ap?number=3,\t\t arithmetic progression", serviceAddress))
-	add_http_handler("/gp2", gp2_handler, fmt.Sprintf("004. http://%s/gp2?number=3,\t\t geometric progression (with common ratio 2)", serviceAddress))
-	add_http_handler("/inc", inc_handler, fmt.Sprintf("005. http://%s/inc?number=3,\t\t increment", serviceAddress))
-	add_http_handler("/autotest_start", autotest_start_handler, fmt.Sprintf("006. http://%s/autotest_start,\t\t start autotest", serviceAddress))
-	add_http_handler("/autotest_stop", autotest_stop_handler, fmt.Sprintf("007. http://%s/autotest_stop,\t\t stop autotest", serviceAddress))
-	add_http_handler("/strrev", revers_string_handler, fmt.Sprintf("008. http://%s/strrev?string=\"abc\",\t revers string", serviceAddress))
-	add_http_handler("/echo", echo_string_handler, fmt.Sprintf("009. http://%s/echo?string=\"abc\",\t echo string", serviceAddress))
-	add_http_handler("/timestamp", timestamp_handler, fmt.Sprintf("010. http://%s/timestamp,\t\t unix timestamp", serviceAddress))
+	add_http_handler("/", root_handler, fmt.Sprintf("001. %s/,\t\t\t get descriptions of services", serviceHttpAddress))
+	add_http_handler("/exit", exit_handler, fmt.Sprintf("002. %s/exit,\t\t\t shutdown service", serviceHttpAddress))
+	add_http_handler("/ap", ap_handler, fmt.Sprintf("003. %s/ap?number=3,\t\t arithmetic progression", serviceHttpAddress))
+	add_http_handler("/gp2", gp2_handler, fmt.Sprintf("004. %s/gp2?number=3,\t\t geometric progression (with common ratio 2)", serviceHttpAddress))
+	add_http_handler("/inc", inc_handler, fmt.Sprintf("005. %s/inc?number=3,\t\t increment", serviceHttpAddress))
+	add_http_handler("/autotest_start", autotest_start_handler, fmt.Sprintf("006. %s/autotest_start,\t start autotest", serviceHttpAddress))
+	add_http_handler("/autotest_stop", autotest_stop_handler, fmt.Sprintf("007. %s/autotest_stop,\t\t stop autotest", serviceHttpAddress))
+	add_http_handler("/strrev", revers_string_handler, fmt.Sprintf("008. %s/strrev?string=\"abc\",\t revers string", serviceHttpAddress))
+	add_http_handler("/echo", echo_string_handler, fmt.Sprintf("009. %s/echo?string=\"abc\",\t echo string", serviceHttpAddress))
+	add_http_handler("/timestamp", timestamp_handler, fmt.Sprintf("010. %s/timestamp,\t\t unix timestamp", serviceHttpAddress))
 
-	err := http.ListenAndServe(serviceAddress, nil)
+	// https://pkg.go.dev/net/http#ListenAndServeTLS
+
+	var err error
+
+	if useHttps {
+		err = http.ListenAndServeTLS(serviceAddress, "cert.pem", "key.pem", nil)
+	} else {
+		err = http.ListenAndServe(serviceAddress, nil)
+	}
+
 	if err != nil {
 		errorStr := fmt.Sprintf("Error opening listening port: %s", err)
 		fmt.Println(errorStr)

@@ -1,6 +1,9 @@
 package main
 
-import "net"
+import (
+	"net"
+	"net/http"
+)
 
 // Get preferred outbound ip of this machine
 func GetOutboundIP() (net.IP, error) {
@@ -51,4 +54,10 @@ func get_local_ip() (net.IP, error) {
 	}
 
 	return ip, nil
+}
+
+func add_https_cros_header_for_between_domain_request(resp_writer http.ResponseWriter) {
+
+	// https://stackoverflow.com/questions/39507065/enable-cors-in-golang
+	resp_writer.Header().Set("Access-Control-Allow-Origin", "*")
 }
