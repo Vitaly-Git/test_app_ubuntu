@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"time"
 )
 
 func root_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -142,9 +143,29 @@ func autotest_stop_handler(resp_writer http.ResponseWriter, r *http.Request) {
 func revers_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	stringToRevers := r.URL.Query().Get("string")
+
 	answer := revers_string(stringToRevers)
 
+	fmt.Printf("Input param string: %s\n", stringToRevers)
+
+	fmt.Printf("Answer: %s\n", answer)
+	fmt.Fprintf(resp_writer, answer)
+}
+
+func echo_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
+
+	answer := r.URL.Query().Get("string")
 	fmt.Printf("Input param string: %s\n", answer)
+
+	fmt.Printf("Answer: %s\n", answer)
+	fmt.Fprintf(resp_writer, answer)
+}
+
+func timestamp_handler(resp_writer http.ResponseWriter, r *http.Request) {
+
+	nanosec := time.Now().UnixNano()
+
+	answer := fmt.Sprint(nanosec)
 
 	fmt.Printf("Answer: %s\n", answer)
 	fmt.Fprintf(resp_writer, answer)
