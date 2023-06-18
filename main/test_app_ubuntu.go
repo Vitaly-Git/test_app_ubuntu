@@ -58,12 +58,13 @@ func start_http_server() {
 	fmt.Printf("Service starting on address: %s\n", serviceAddress)
 
 	add_http_handler("/", root_handler, fmt.Sprintf("1. http://%s/,\t\t\t get descriptions of services", serviceAddress))
-	add_http_handler("/ap", ap_handler, fmt.Sprintf("2. http://%s/ap?number=3,\t arithmetic progression", serviceAddress))
-	add_http_handler("/gp2", gp2_handler, fmt.Sprintf("3. http://%s/gp2?number=3,\t geometric progression (with common ratio 2)", serviceAddress))
-	add_http_handler("/inc", inc_handler, fmt.Sprintf("4. http://%s/inc?number=3,\t increment", serviceAddress))
-	add_http_handler("/exit", exit_handler, fmt.Sprintf("5. http://%s/exit,\t\t shutdown service", serviceAddress))
+	add_http_handler("/exit", exit_handler, fmt.Sprintf("2. http://%s/exit,\t\t shutdown service", serviceAddress))
+	add_http_handler("/ap", ap_handler, fmt.Sprintf("3. http://%s/ap?number=3,\t arithmetic progression", serviceAddress))
+	add_http_handler("/gp2", gp2_handler, fmt.Sprintf("4. http://%s/gp2?number=3,\t geometric progression (with common ratio 2)", serviceAddress))
+	add_http_handler("/inc", inc_handler, fmt.Sprintf("5. http://%s/inc?number=3,\t increment", serviceAddress))
 	add_http_handler("/autotest_start", autotest_start_handler, fmt.Sprintf("6. http://%s/autotest_start,\t start autotest", serviceAddress))
 	add_http_handler("/autotest_stop", autotest_stop_handler, fmt.Sprintf("7. http://%s/autotest_stop,\t stop autotest", serviceAddress))
+	add_http_handler("/strrev", revers_string_handler, fmt.Sprintf("8. http://%s/strrev?string=\"abc\",\t revers string", serviceAddress))
 
 	err := http.ListenAndServe(serviceAddress, nil)
 	if err != nil {

@@ -137,5 +137,15 @@ func autotest_stop_handler(resp_writer http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(resp_writer, answer)
 
 	autotest_running = false
+}
 
+func revers_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
+
+	stringToRevers := r.URL.Query().Get("string")
+	answer := revers_string(stringToRevers)
+
+	fmt.Printf("Input param string: %s\n", answer)
+
+	fmt.Printf("Answer: %s\n", answer)
+	fmt.Fprintf(resp_writer, answer)
 }
