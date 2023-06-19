@@ -4,3 +4,5 @@ test_app_ubuntu.code-workspace
 test_app_ubuntu.exe
 tolinux - для копирования в облако.lnk
 __debug_bin.exe
+cert.pem
+key.pem
