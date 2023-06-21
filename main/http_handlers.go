@@ -41,6 +41,8 @@ func root_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Answer: %s\n", answer)
 	fmt.Fprintf(resp_writer, answer)
+
+	add_connect_params_to_db(r, answer)
 }
 
 func ap_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -61,6 +63,8 @@ func ap_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Answer: %s\n", answer)
 	fmt.Fprintf(resp_writer, answer)
+
+	add_connect_params_to_db(r, answer)
 }
 
 func gp2_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -81,6 +85,8 @@ func gp2_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Answer: %s\n", answer)
 	fmt.Fprintf(resp_writer, answer)
+
+	add_connect_params_to_db(r, answer)
 }
 
 func inc_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -102,6 +108,8 @@ func inc_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Answer: %s\n", answer)
 	fmt.Fprintf(resp_writer, answer)
+
+	add_connect_params_to_db(r, answer)
 }
 
 func exit_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -118,6 +126,8 @@ func exit_handler(resp_writer http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(resp_writer, answer)
 
 	chEndService <- "Service shutdown"
+
+	add_connect_params_to_db(r, answer)
 }
 
 func autotest_start_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -136,6 +146,8 @@ func autotest_start_handler(resp_writer http.ResponseWriter, r *http.Request) {
 	autotest_running = true
 
 	go autotest_selfconnect()
+
+	add_connect_params_to_db(r, answer)
 }
 
 func autotest_stop_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -152,6 +164,8 @@ func autotest_stop_handler(resp_writer http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(resp_writer, answer)
 
 	autotest_running = false
+
+	add_connect_params_to_db(r, answer)
 }
 
 func revers_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -166,6 +180,8 @@ func revers_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Answer: %s\n", answer)
 	fmt.Fprintf(resp_writer, answer)
+
+	add_connect_params_to_db(r, answer)
 }
 
 func echo_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -177,6 +193,8 @@ func echo_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Answer: %s\n", answer)
 	fmt.Fprintf(resp_writer, answer)
+
+	add_connect_params_to_db(r, answer)
 }
 
 func timestamp_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -189,12 +207,16 @@ func timestamp_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Answer: %s\n", answer)
 	fmt.Fprintf(resp_writer, answer)
+
+	add_connect_params_to_db(r, answer)
 }
 
 func lissajous_handler(resp_writer http.ResponseWriter, r *http.Request) {
 	add_https_cros_header_for_between_domain_request(resp_writer)
 	lissajous(resp_writer)
 	fmt.Printf("Answer: %s\n", resp_writer)
+
+	add_connect_params_to_db(r, "lissajous")
 }
 
 func performance_chart_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -208,4 +230,5 @@ func performance_chart_handler(resp_writer http.ResponseWriter, r *http.Request)
 	fmt.Printf("Answer: %s\n", answer)
 	fmt.Fprintf(resp_writer, answer)
 
+	add_connect_params_to_db(r, answer)
 }
