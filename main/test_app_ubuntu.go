@@ -83,6 +83,7 @@ func start_http_server() {
 	add_http_handler("/strrev", revers_string_handler, fmt.Sprintf("008. %s/strrev?string=\"abc\",\t revers string", serviceHttpAddress))
 	add_http_handler("/echo", echo_string_handler, fmt.Sprintf("009. %s/echo?string=\"abc\",\t echo string", serviceHttpAddress))
 	add_http_handler("/timestamp", timestamp_handler, fmt.Sprintf("010. %s/timestamp,\t\t unix timestamp", serviceHttpAddress))
+	add_http_handler("/lissajous", lissajous_handler, fmt.Sprintf("011. %s/lissajous,\t\t lissajous figures", serviceHttpAddress))
 
 	// https://pkg.go.dev/net/http#ListenAndServeTLS
 

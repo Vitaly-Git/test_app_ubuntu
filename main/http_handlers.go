@@ -190,3 +190,22 @@ func timestamp_handler(resp_writer http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Answer: %s\n", answer)
 	fmt.Fprintf(resp_writer, answer)
 }
+
+func lissajous_handler(resp_writer http.ResponseWriter, r *http.Request) {
+	add_https_cros_header_for_between_domain_request(resp_writer)
+	lissajous(resp_writer)
+	fmt.Printf("Answer: %s\n", resp_writer)
+}
+
+func performance_chart_handler(resp_writer http.ResponseWriter, r *http.Request) {
+
+	add_https_cros_header_for_between_domain_request(resp_writer)
+
+	nanosec := time.Now().UnixNano()
+
+	answer := fmt.Sprint(nanosec)
+
+	fmt.Printf("Answer: %s\n", answer)
+	fmt.Fprintf(resp_writer, answer)
+
+}
