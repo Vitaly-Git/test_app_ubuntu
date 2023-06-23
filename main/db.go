@@ -52,7 +52,7 @@ func get_connections_history() string {
 	}
 	defer db.Close()
 
-	rows, err := db.Query("select client, url, params, answer, connection_time from connections_history order by connection_time")
+	rows, err := db.Query("select client, url, params, answer, connection_time from connections_history order by connection_time desc limit 30")
 	if err != nil {
 		panic(err)
 	}

@@ -150,6 +150,13 @@ func connections_history_handler(resp_writer http.ResponseWriter, r *http.Reques
 	http_handler_before_end(resp_writer, r, answer, true)
 }
 
+func connections_chart_handler(resp_writer http.ResponseWriter, r *http.Request) {
+
+	drawChart(resp_writer, r)
+
+	http_handler_before_end(resp_writer, r, "history chart", false)
+}
+
 // func performance_chart_handler(resp_writer http.ResponseWriter, r *http.Request) {
 //
 // 	nanosec := time.Now().UnixNano()
