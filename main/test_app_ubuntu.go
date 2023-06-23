@@ -78,12 +78,13 @@ func start_http_server() {
 	add_http_handler("/ap", ap_handler, fmt.Sprintf("003. %s/ap?number=3,\t\t arithmetic progression", serviceHttpAddress))
 	add_http_handler("/gp2", gp2_handler, fmt.Sprintf("004. %s/gp2?number=3,\t\t geometric progression (with common ratio 2)", serviceHttpAddress))
 	add_http_handler("/inc", inc_handler, fmt.Sprintf("005. %s/inc?number=3,\t\t increment", serviceHttpAddress))
-	add_http_handler("/autotest_start", autotest_start_handler, fmt.Sprintf("006. %s/autotest_start,\t start autotest", serviceHttpAddress))
+	add_http_handler("/autotest_start", autotest_start_handler, fmt.Sprintf("006. %s/autotest_start,\t\t start autotest", serviceHttpAddress))
 	add_http_handler("/autotest_stop", autotest_stop_handler, fmt.Sprintf("007. %s/autotest_stop,\t\t stop autotest", serviceHttpAddress))
 	add_http_handler("/strrev", revers_string_handler, fmt.Sprintf("008. %s/strrev?string=\"abc\",\t revers string", serviceHttpAddress))
 	add_http_handler("/echo", echo_string_handler, fmt.Sprintf("009. %s/echo?string=\"abc\",\t echo string", serviceHttpAddress))
 	add_http_handler("/timestamp", timestamp_handler, fmt.Sprintf("010. %s/timestamp,\t\t unix timestamp", serviceHttpAddress))
 	add_http_handler("/lissajous", lissajous_handler, fmt.Sprintf("011. %s/lissajous,\t\t lissajous figures", serviceHttpAddress))
+	add_http_handler("/connections_history", connections_history_handler, fmt.Sprintf("012. %s/connections_history,\t connections history", serviceHttpAddress))
 
 	// https://pkg.go.dev/net/http#ListenAndServeTLS
 

@@ -4,55 +4,41 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
-	"strconv"
 	"time"
 )
 
-func root_handler(resp_writer http.ResponseWriter, r *http.Request) {
+func http_handler_before_end(resp_writer http.ResponseWriter, r *http.Request, answer string, WriteAnswerToResp bool) {
 
 	add_https_cros_header_for_between_domain_request(resp_writer)
 
-	var answer string = ""
-	var url_path string = r.URL.Path
-
-	answer += fmt.Sprintf("Client: %s request: %s\n\n", r.RemoteAddr, url_path)
-
-	// helpStringCount := len(helpMap)
-
-	var values []string
-
-	for _, value := range helpMap {
-		values = append(values, value)
-	}
-
-	sort.Strings(values)
-
-	for _, value := range values {
-		answer += fmt.Sprintf("%s\n", value)
-	}
-
-	// for key, value := range helpMap {
-	// 	answer += fmt.Sprintf("%s\n", value)
-	// }
-
-	// for c:=0; c < helpStringCount; c++ {
-	// 	answer += fmt.Sprintf("%s\n", helpMap[])
-	// }
-
 	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
+
+	if WriteAnswerToResp {
+		fmt.Fprintf(resp_writer, "%s", answer)
+	}
 
 	add_connect_params_to_db(r, answer)
 }
 
+func root_handler(resp_writer http.ResponseWriter, r *http.Request) {
+
+	answer := fmt.Sprintf("Client: %s request: %s\n\n", r.RemoteAddr, r.URL.Path)
+
+	var values []string
+	for _, value := range helpMap {
+		values = append(values, value)
+	}
+	sort.Strings(values)
+	for _, value := range values {
+		answer += fmt.Sprintf("%s\n", value)
+	}
+
+	http_handler_before_end(resp_writer, r, answer, true)
+}
+
 func ap_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
-	add_https_cros_header_for_between_domain_request(resp_writer)
-
-	numStr := r.URL.Query().Get("number")
-	num, err := strconv.ParseInt(numStr, 0, 64)
-
-	fmt.Printf("Input param number: %s\n", numStr)
+	num, err := get_param_number(r)
 
 	var answer string = ""
 	if err == nil {
@@ -61,20 +47,12 @@ func ap_handler(resp_writer http.ResponseWriter, r *http.Request) {
 		answer = "Bad param"
 	}
 
-	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
-
-	add_connect_params_to_db(r, answer)
+	http_handler_before_end(resp_writer, r, answer, true)
 }
 
 func gp2_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
-	add_https_cros_header_for_between_domain_request(resp_writer)
-
-	numStr := r.URL.Query().Get("number")
-	num, err := strconv.ParseInt(numStr, 0, 64)
-
-	fmt.Printf("Input param number: %s\n", numStr)
+	num, err := get_param_number(r)
 
 	var answer string = ""
 	if err == nil {
@@ -83,20 +61,12 @@ func gp2_handler(resp_writer http.ResponseWriter, r *http.Request) {
 		answer = "Bad param"
 	}
 
-	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
-
-	add_connect_params_to_db(r, answer)
+	http_handler_before_end(resp_writer, r, answer, true)
 }
 
 func inc_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
-	add_https_cros_header_for_between_domain_request(resp_writer)
-
-	numStr := r.URL.Query().Get("number")
-	num, err := strconv.ParseInt(numStr, 0, 64)
-
-	fmt.Printf("Input param number: %s\n", numStr)
+	num, err := get_param_number(r)
 
 	var answer string = ""
 	if err == nil {
@@ -106,129 +76,84 @@ func inc_handler(resp_writer http.ResponseWriter, r *http.Request) {
 		answer = "Bad param"
 	}
 
-	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
-
-	add_connect_params_to_db(r, answer)
+	http_handler_before_end(resp_writer, r, answer, true)
 }
 
 func exit_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
-	add_https_cros_header_for_between_domain_request(resp_writer)
-
-	var answer string = ""
-	var url_path string = r.URL.Path
-
-	answer += fmt.Sprintf("Client: %s request: %s\n", r.RemoteAddr, url_path)
+	answer := fmt.Sprintf("Client: %s request: %s\n", r.RemoteAddr, r.URL.Path)
 	answer += "service going to shutting down\n"
 
-	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
+	http_handler_before_end(resp_writer, r, answer, true)
 
-	chEndService <- "Service shutdown"
-
-	add_connect_params_to_db(r, answer)
+	chEndService <- answer
 }
 
 func autotest_start_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
-	add_https_cros_header_for_between_domain_request(resp_writer)
-
-	var answer string = ""
-	var url_path string = r.URL.Path
-
-	answer += fmt.Sprintf("Client: %s request: %s\n", r.RemoteAddr, url_path)
-	answer += "autotest mode running...\n"
-
-	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
-
 	autotest_running = true
+
+	answer := fmt.Sprintf("Client: %s request: %s\n", r.RemoteAddr, r.URL.Path)
+	answer += "autotest mode running...\n"
 
 	go autotest_selfconnect()
 
-	add_connect_params_to_db(r, answer)
+	http_handler_before_end(resp_writer, r, answer, true)
 }
 
 func autotest_stop_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
-	add_https_cros_header_for_between_domain_request(resp_writer)
-
-	var answer string = ""
-	var url_path string = r.URL.Path
-
-	answer += fmt.Sprintf("Client: %s request: %s\n", r.RemoteAddr, url_path)
-	answer += "autotest mode shutingdown...\n"
-
-	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
-
 	autotest_running = false
 
-	add_connect_params_to_db(r, answer)
+	answer := fmt.Sprintf("Client: %s request: %s\n", r.RemoteAddr, r.URL.Path)
+	answer += "autotest mode shutingdown...\n"
+
+	http_handler_before_end(resp_writer, r, answer, true)
 }
 
 func revers_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
-	add_https_cros_header_for_between_domain_request(resp_writer)
-
-	stringToRevers := r.URL.Query().Get("string")
+	stringToRevers := get_param_string(r)
 
 	answer := revers_string(stringToRevers)
 
-	fmt.Printf("Input param string: %s\n", stringToRevers)
-
-	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
-
-	add_connect_params_to_db(r, answer)
+	http_handler_before_end(resp_writer, r, answer, true)
 }
 
 func echo_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
-	add_https_cros_header_for_between_domain_request(resp_writer)
+	answer := get_param_string(r)
 
-	answer := r.URL.Query().Get("string")
-	fmt.Printf("Input param string: %s\n", answer)
-
-	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
-
-	add_connect_params_to_db(r, answer)
+	http_handler_before_end(resp_writer, r, answer, true)
 }
 
 func timestamp_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
-	add_https_cros_header_for_between_domain_request(resp_writer)
-
 	nanosec := time.Now().UnixNano()
-
 	answer := fmt.Sprint(nanosec)
 
-	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
-
-	add_connect_params_to_db(r, answer)
+	http_handler_before_end(resp_writer, r, answer, true)
 }
 
 func lissajous_handler(resp_writer http.ResponseWriter, r *http.Request) {
-	add_https_cros_header_for_between_domain_request(resp_writer)
+
 	lissajous(resp_writer)
-	fmt.Printf("Answer: %s\n", resp_writer)
 
-	add_connect_params_to_db(r, "lissajous")
+	http_handler_before_end(resp_writer, r, "lissajous", false)
+
 }
 
-func performance_chart_handler(resp_writer http.ResponseWriter, r *http.Request) {
+func connections_history_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
-	add_https_cros_header_for_between_domain_request(resp_writer)
+	answer := get_connections_history()
 
-	nanosec := time.Now().UnixNano()
-
-	answer := fmt.Sprint(nanosec)
-
-	fmt.Printf("Answer: %s\n", answer)
-	fmt.Fprintf(resp_writer, answer)
-
-	add_connect_params_to_db(r, answer)
+	http_handler_before_end(resp_writer, r, answer, true)
 }
+
+// func performance_chart_handler(resp_writer http.ResponseWriter, r *http.Request) {
+//
+// 	nanosec := time.Now().UnixNano()
+// 	answer := fmt.Sprint(nanosec)
+//
+// 	http_handler_before_end(resp_writer, r, answer, true)
+// }
