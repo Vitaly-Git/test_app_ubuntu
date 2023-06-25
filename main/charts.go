@@ -41,6 +41,31 @@ func readData() ([]time.Time, []float64) {
 	return xvalues, yvalues
 }
 
+func getXvaluesYvaluesFromDB() ([]time.Time, []float64) {
+
+	var xvalues []time.Time
+	var yvalues []float64
+
+	xvalues, yvalues = get_connections_history_by_hours()
+
+	// err := util.File.ReadByLines("requests.csv", func(line string) error {
+	// 	parts := strings.Split(line, ",")
+	// 	year := parseInt(parts[0])
+	// 	month := parseInt(parts[1])
+	// 	day := parseInt(parts[2])
+	// 	hour := parseInt(parts[3])
+	// 	elapsedMillis := parseFloat64(parts[4])
+	// 	xvalues = append(xvalues, time.Date(year, time.Month(month), day, hour, 0, 0, 0, time.UTC))
+	// 	yvalues = append(yvalues, elapsedMillis)
+	// 	return nil
+	// })
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
+
+	return xvalues, yvalues
+}
+
 func releases() []chart.GridLine {
 	return []chart.GridLine{
 		{Value: util.Time.ToFloat64(time.Date(2016, 8, 1, 9, 30, 0, 0, time.UTC))},
@@ -53,9 +78,13 @@ func releases() []chart.GridLine {
 }
 
 func drawChart(res http.ResponseWriter, req *http.Request) {
-	xvalues, yvalues := readData()
+
+	// xvalues, yvalues := readData()
+
+	xvalues, yvalues := getXvaluesYvaluesFromDB()
+
 	mainSeries := chart.TimeSeries{
-		Name: "Prod Request Timings",
+		Name: "Connections count",
 		Style: chart.Style{
 			Show:        true,
 			StrokeColor: chart.ColorBlue,
@@ -65,25 +94,25 @@ func drawChart(res http.ResponseWriter, req *http.Request) {
 		YValues: yvalues,
 	}
 
-	linreg := &chart.LinearRegressionSeries{
-		Name: "Linear Regression",
-		Style: chart.Style{
-			Show:            true,
-			StrokeColor:     chart.ColorAlternateBlue,
-			StrokeDashArray: []float64{5.0, 5.0},
-		},
-		InnerSeries: mainSeries,
-	}
+	// linreg := &chart.LinearRegressionSeries{
+	// 	Name: "Linear Regression",
+	// 	Style: chart.Style{
+	// 		Show:            true,
+	// 		StrokeColor:     chart.ColorAlternateBlue,
+	// 		StrokeDashArray: []float64{5.0, 5.0},
+	// 	},
+	// 	InnerSeries: mainSeries,
+	// }
 
-	sma := &chart.SMASeries{
-		Name: "SMA",
-		Style: chart.Style{
-			Show:            true,
-			StrokeColor:     chart.ColorRed,
-			StrokeDashArray: []float64{5.0, 5.0},
-		},
-		InnerSeries: mainSeries,
-	}
+	// sma := &chart.SMASeries{
+	// 	Name: "SMA",
+	// 	Style: chart.Style{
+	// 		Show:            true,
+	// 		StrokeColor:     chart.ColorRed,
+	// 		StrokeDashArray: []float64{5.0, 5.0},
+	// 	},
+	// 	InnerSeries: mainSeries,
+	// }
 
 	graph := chart.Chart{
 		Width:  1280,
@@ -94,14 +123,14 @@ func drawChart(res http.ResponseWriter, req *http.Request) {
 			},
 		},
 		YAxis: chart.YAxis{
-			Name:      "Elapsed Millis",
+			Name:      "quantity",
 			NameStyle: chart.StyleShow(),
 			Style:     chart.StyleShow(),
 			TickStyle: chart.Style{
 				TextRotationDegrees: 45.0,
 			},
 			ValueFormatter: func(v interface{}) string {
-				return fmt.Sprintf("%d ms", int(v.(float64)))
+				return fmt.Sprintf("%d", int(v.(float64)))
 			},
 		},
 		XAxis: chart.XAxis{
@@ -118,10 +147,6 @@ func drawChart(res http.ResponseWriter, req *http.Request) {
 		},
 		Series: []chart.Series{
 			mainSeries,
-			linreg,
-			chart.LastValueAnnotation(linreg),
-			sma,
-			chart.LastValueAnnotation(sma),
 		},
 	}
 
