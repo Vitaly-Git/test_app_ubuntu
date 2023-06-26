@@ -14,12 +14,12 @@ import (
 const (
 	Width      = 30 // Ширина матрицы
 	Height     = 30 // Высота матрицы
-	pixelWidth = 5
+	pixelWidth = 3
 )
 
-var fallenColor = color.RGBA{0, 0, 0, 255}
-var needToFallColor = color.RGBA{0, 0, 0, 255}
-var backColor = color.RGBA{255, 255, 255, 255}
+var fallenColor = color.RGBA{0, 116, 217, 255}
+var needToFallColor = color.RGBA{0, 116, 217, 255}
+var backColor = color.RGBA{200, 200, 200, 255}
 
 type Particle struct {
 	X, Y       int
