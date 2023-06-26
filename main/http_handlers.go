@@ -157,6 +157,13 @@ func connections_chart_handler(resp_writer http.ResponseWriter, r *http.Request)
 	http_handler_before_end(resp_writer, r, "history chart", false)
 }
 
+func particles_handler(resp_writer http.ResponseWriter, r *http.Request) {
+
+	drawParticles(resp_writer)
+
+	http_handler_before_end(resp_writer, r, "particles", false)
+}
+
 // func performance_chart_handler(resp_writer http.ResponseWriter, r *http.Request) {
 //
 // 	nanosec := time.Now().UnixNano()
