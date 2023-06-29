@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	"image/color/palette"
+	"image/draw"
+	"image/gif"
 	"image/png"
 	"math"
 	"math/rand"
@@ -33,7 +36,39 @@ type Particle struct {
 var isBegin = true
 var matrixParticles [][]Particle
 
-func drawParticles(resp_writer http.ResponseWriter) {
+func writeParticlesPngToResponse(resp_writer http.ResponseWriter) {
+
+	drawParticlesToMatrixMakeOneStep()
+
+	img := convertMatixToImg(matrixParticles)
+
+	savematrixParticlesImage(img, resp_writer)
+}
+
+func writeParticlesGifToResponse(resp_writer http.ResponseWriter) {
+
+	animGif := gif.GIF{}
+
+	const (
+		delayGif = 1 // Задержка между кадрами (единица - 10мс)
+	)
+
+	for isMatrixStartedFromBegin := false; isMatrixStartedFromBegin == false; isMatrixStartedFromBegin = drawParticlesToMatrixMakeOneStep() {
+
+		imgRGDA := convertMatixToImg(matrixParticles)
+
+		bounds := imgRGDA.Bounds()
+		palettedImage := image.NewPaletted(bounds, palette.Plan9)
+		draw.Draw(palettedImage, palettedImage.Rect, imgRGDA, bounds.Min, draw.Over)
+
+		animGif.Image = append(animGif.Image, palettedImage)
+		animGif.Delay = append(animGif.Delay, delayGif)
+	}
+
+	gif.EncodeAll(resp_writer, &animGif)
+}
+
+func drawParticlesToMatrixMakeOneStep() (isMatrixStartedFromBegin bool) {
 
 	if isBegin {
 		isBegin = false
@@ -44,7 +79,9 @@ func drawParticles(resp_writer http.ResponseWriter) {
 	}
 
 	if ismatrixParticlesFull(matrixParticles) ||
-		secondRowFilled(matrixParticles) {
+		firstRowFilled(matrixParticles) ||
+		secondRowFilled(matrixParticles) ||
+		thirdRowFilled(matrixParticles) {
 		isBegin = true
 	} else {
 		moveParticles(matrixParticles)
@@ -57,7 +94,7 @@ func drawParticles(resp_writer http.ResponseWriter) {
 		}
 	}
 
-	savematrixParticlesImage(matrixParticles, resp_writer)
+	return isBegin
 }
 
 func generatematrixParticles() [][]Particle {
@@ -103,9 +140,21 @@ func ismatrixParticlesFull(matrixParticles [][]Particle) bool {
 	return true
 }
 
-func secondRowFilled(matrixParticles [][]Particle) bool {
+func firstRowFilled(matrixParticles [][]Particle) bool {
+	return rowIsFilled(matrixParticles, 0)
+}
 
-	for _, particle := range matrixParticles[1] {
+func secondRowFilled(matrixParticles [][]Particle) bool {
+	return rowIsFilled(matrixParticles, 1)
+}
+
+func thirdRowFilled(matrixParticles [][]Particle) bool {
+	return rowIsFilled(matrixParticles, 2)
+}
+
+func rowIsFilled(matrixParticles [][]Particle, rowIdx int) bool {
+
+	for _, particle := range matrixParticles[rowIdx] {
 		if !particle.Fallen {
 			return false
 		}
@@ -217,7 +266,8 @@ func moveParticle(particle *Particle, matrixParticles [][]Particle) {
 	}
 }
 
-func savematrixParticlesImage(matrixParticles [][]Particle, w http.ResponseWriter) {
+func convertMatixToImg(matrixParticles [][]Particle) *image.RGBA {
+
 	width := Width * pixelWidth
 	height := Height * pixelWidth
 
@@ -239,6 +289,10 @@ func savematrixParticlesImage(matrixParticles [][]Particle, w http.ResponseWrite
 			}
 		}
 	}
+	return img
+}
+
+func savematrixParticlesImage(img *image.RGBA, w http.ResponseWriter) {
 
 	w.Header().Set("Content-Type", "image/png")
 	if err := png.Encode(w, img); err != nil {

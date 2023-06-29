@@ -141,3 +141,22 @@ func get_connections_history_by_hours() ([]time.Time, []float64) {
 	return xvalues, yvalues
 
 }
+
+func clear_db() {
+
+	db, err := sql.Open("sqlite3", "sqlite_db.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec(`delete from connections_history`)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = db.Exec(`VACUUM`)
+	if err != nil {
+		panic(err)
+	}
+}

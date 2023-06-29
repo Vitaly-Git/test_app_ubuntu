@@ -101,7 +101,9 @@ func start_http_server() {
 	add_http_handler("/lissajous", lissajous_handler, fmt.Sprintf("011. %s/lissajous,\t\t lissajous figures", serviceHttpAddress))
 	add_http_handler("/connections_chart", connections_chart_handler, fmt.Sprintf("012. %s/connections_chart,\t connections chart", serviceHttpAddress))
 	add_http_handler("/connections_history", connections_history_handler, fmt.Sprintf("013. %s/connections_history,\t connections history", serviceHttpAddress))
-	add_http_handler("/particles", particles_handler, fmt.Sprintf("014. %s/particles,\t\t particles", serviceHttpAddress))
+	add_http_handler("/particles_png", particles_handler_png, fmt.Sprintf("014. %s/particles_png,\t\t draw particles to png", serviceHttpAddress))
+	add_http_handler("/particles_gif", particles_handler_gif, fmt.Sprintf("015. %s/particles_gif,\t\t draw particles to gif", serviceHttpAddress))
+	add_http_handler("/clear_db", particles_handler_clear_db, fmt.Sprintf("016. %s/clear_db,\t\t clear database", serviceHttpAddress))
 
 	// add_http_handler("/", root_handler, fmt.Sprintf("001. %30.30/%-30.30s%30.30s", serviceHttpAddress, " ", "get descriptions of services"))
 	// add_http_handler("/exit", exit_handler, fmt.Sprintf("002. %22.22s/%-22.22s%22.22s", serviceHttpAddress, "exit", "shutdown service"))

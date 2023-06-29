@@ -157,11 +157,25 @@ func connections_chart_handler(resp_writer http.ResponseWriter, r *http.Request)
 	http_handler_before_end(resp_writer, r, "history chart", false)
 }
 
-func particles_handler(resp_writer http.ResponseWriter, r *http.Request) {
+func particles_handler_png(resp_writer http.ResponseWriter, r *http.Request) {
 
-	drawParticles(resp_writer)
+	writeParticlesPngToResponse(resp_writer)
 
-	http_handler_before_end(resp_writer, r, "particles", false)
+	http_handler_before_end(resp_writer, r, "particles_png", false)
+}
+
+func particles_handler_gif(resp_writer http.ResponseWriter, r *http.Request) {
+
+	writeParticlesGifToResponse(resp_writer)
+
+	http_handler_before_end(resp_writer, r, "particles_gif", false)
+}
+
+func particles_handler_clear_db(resp_writer http.ResponseWriter, r *http.Request) {
+
+	clear_db()
+
+	http_handler_before_end(resp_writer, r, "database has been cleared", true)
 }
 
 // func performance_chart_handler(resp_writer http.ResponseWriter, r *http.Request) {
