@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	Width      = 30 // Ширина матрицы
-	Height     = 30 // Высота матрицы
+	Width      = 60 //30 // Ширина матрицы
+	Height     = 60 //30 // Высота матрицы
 	pixelWidth = 3  // размеры пикселя матрицы
 )
 
@@ -24,6 +24,7 @@ var fallenColor = color.RGBA{0, 146, 247, 255}
 var needToFallColor = color.RGBA{0, 0, 255, 255} // color.RGBA{0, 116, 217, 255}
 var backColor = color.RGBA{200, 200, 200, 255}
 var maxVolatility = 20 // летучесть, чем выше тем ниже скорость падения
+var maxObstaclesPircent float32 = 0.15
 
 type Particle struct {
 	X, Y              int
@@ -31,6 +32,7 @@ type Particle struct {
 	needToFall        bool
 	volatility        int
 	initialVolatility int
+	rotating          int
 }
 
 var isBegin = true
@@ -40,7 +42,7 @@ func writeParticlesPngToResponse(resp_writer http.ResponseWriter) {
 
 	drawParticlesToMatrixMakeOneStep()
 
-	img := convertMatixToImg(matrixParticles)
+	img := convertMatixToImg(&matrixParticles)
 
 	savematrixParticlesImage(img, resp_writer)
 }
@@ -55,7 +57,7 @@ func writeParticlesGifToResponse(resp_writer http.ResponseWriter) {
 
 	for isMatrixStartedFromBegin := false; isMatrixStartedFromBegin == false; isMatrixStartedFromBegin = drawParticlesToMatrixMakeOneStep() {
 
-		imgRGDA := convertMatixToImg(matrixParticles)
+		imgRGDA := convertMatixToImg(&matrixParticles)
 
 		bounds := imgRGDA.Bounds()
 		palettedImage := image.NewPaletted(bounds, palette.Plan9)
@@ -78,10 +80,18 @@ func drawParticlesToMatrixMakeOneStep() (isMatrixStartedFromBegin bool) {
 		generateParticleToMove(matrixParticles)
 	}
 
-	if ismatrixParticlesFull(matrixParticles) ||
-		firstRowFilled(matrixParticles) ||
-		secondRowFilled(matrixParticles) ||
-		thirdRowFilled(matrixParticles) {
+	isFirstRowsFilled := false
+	for idxRow := 0; idxRow < 10; idxRow++ {
+		if rowIsFilled(matrixParticles, idxRow) {
+			isFirstRowsFilled = true
+			break
+		}
+	}
+
+	if ismatrixParticlesFull(matrixParticles) || isFirstRowsFilled {
+		// firstRowFilled(matrixParticles) ||
+		// secondRowFilled(matrixParticles) ||
+		// thirdRowFilled(matrixParticles) {
 		isBegin = true
 	} else {
 		moveParticles(matrixParticles)
@@ -107,7 +117,7 @@ func generatematrixParticles() [][]Particle {
 
 func generateParticlesobstacles(matrixParticles [][]Particle) {
 
-	countObstacles := rand.Intn(Width * Height * 0.1)
+	countObstacles := rand.Intn(int(Width * Height * maxObstaclesPircent))
 
 	for c := 0; c < countObstacles; c++ {
 		x := rand.Intn(Width)
@@ -256,40 +266,173 @@ func moveParticle(particle *Particle, matrixParticles [][]Particle) {
 
 		if !movingParticle.Fallen {
 			initialVolatility := movingParticle.initialVolatility
+			rotating := movingParticle.rotating
 			movingParticle = &matrixParticles[y][x]
 			movingParticle.X = x
 			movingParticle.Y = y
 			movingParticle.Fallen = false
 			movingParticle.needToFall = true
 			movingParticle.initialVolatility = initialVolatility
+			movingParticle.rotating = rotating
 		}
 	}
 }
 
-func convertMatixToImg(matrixParticles [][]Particle) *image.RGBA {
+func convertMatixToImg(matrixParticles *[][]Particle) *image.RGBA {
 
 	width := Width * pixelWidth
 	height := Height * pixelWidth
 
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
-	for y, row := range matrixParticles {
+
+	var curParticiple *Particle
+
+	for y, row := range *matrixParticles {
 		for x, particle := range row {
+
 			var col color.RGBA
+			isFalling := false
+
+			curParticiple = &(*matrixParticles)[y][x]
+
 			if particle.needToFall {
 				col = needToFallColor
+				isFalling = true
 			} else if particle.Fallen {
 				col = fallenColor
 			} else {
 				col = backColor
 			}
-			for i := 0; i < pixelWidth; i++ {
-				for j := 0; j < pixelWidth; j++ {
-					img.Set(x*pixelWidth+i, y*pixelWidth+j, col)
-				}
-			}
+			drawParticle(img, pixelWidth, x, y, col, isFalling, curParticiple)
 		}
 	}
 	return img
+}
+
+func drawParticle(img *image.RGBA, pixelWidth int, x int, y int, col color.RGBA, isFalling bool, particle *Particle) {
+
+	if isFalling {
+
+		switch particle.rotating {
+
+		case 0:
+			img.Set(x*pixelWidth+1, y*pixelWidth+0, col)
+
+			img.Set(x*pixelWidth+0, y*pixelWidth+1, col)
+			img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+			img.Set(x*pixelWidth+2, y*pixelWidth+1, col)
+
+			img.Set(x*pixelWidth+1, y*pixelWidth+2, col)
+		case 1:
+			img.Set(x*pixelWidth+2, y*pixelWidth+0, col)
+
+			img.Set(x*pixelWidth+0, y*pixelWidth+1, col)
+			img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+			img.Set(x*pixelWidth+2, y*pixelWidth+1, col)
+
+			img.Set(x*pixelWidth+1, y*pixelWidth+2, col)
+		case 2:
+			img.Set(x*pixelWidth+2, y*pixelWidth+0, col)
+
+			img.Set(x*pixelWidth+0, y*pixelWidth+1, col)
+			img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+
+			img.Set(x*pixelWidth+1, y*pixelWidth+2, col)
+			img.Set(x*pixelWidth+2, y*pixelWidth+2, col)
+		case 3:
+			img.Set(x*pixelWidth+2, y*pixelWidth+0, col)
+
+			img.Set(x*pixelWidth+0, y*pixelWidth+1, col)
+			img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+
+			img.Set(x*pixelWidth+0, y*pixelWidth+2, col)
+			img.Set(x*pixelWidth+2, y*pixelWidth+2, col)
+		case 4:
+			img.Set(x*pixelWidth+0, y*pixelWidth+0, col)
+			img.Set(x*pixelWidth+2, y*pixelWidth+0, col)
+
+			img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+
+			img.Set(x*pixelWidth+0, y*pixelWidth+2, col)
+			img.Set(x*pixelWidth+2, y*pixelWidth+2, col)
+
+		case 5:
+			img.Set(x*pixelWidth+0, y*pixelWidth+0, col)
+
+			img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+			img.Set(x*pixelWidth+2, y*pixelWidth+1, col)
+
+			img.Set(x*pixelWidth+0, y*pixelWidth+2, col)
+			img.Set(x*pixelWidth+2, y*pixelWidth+2, col)
+		case 6:
+			img.Set(x*pixelWidth+0, y*pixelWidth+0, col)
+
+			img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+			img.Set(x*pixelWidth+2, y*pixelWidth+1, col)
+
+			img.Set(x*pixelWidth+0, y*pixelWidth+2, col)
+			img.Set(x*pixelWidth+1, y*pixelWidth+2, col)
+		case 7:
+			img.Set(x*pixelWidth+0, y*pixelWidth+0, col)
+
+			img.Set(x*pixelWidth+0, y*pixelWidth+1, col)
+			img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+			img.Set(x*pixelWidth+2, y*pixelWidth+1, col)
+
+			img.Set(x*pixelWidth+1, y*pixelWidth+2, col)
+		}
+
+		particle.rotating++
+
+		if particle.rotating > 7 {
+			particle.rotating = 0
+		}
+
+		// case 0:
+		// 	img.Set(x*pixelWidth+0, y*pixelWidth+0, col)
+		// 	img.Set(x*pixelWidth+1, y*pixelWidth+0, col)
+		// 	img.Set(x*pixelWidth+2, y*pixelWidth+0, col)
+
+		// 	img.Set(x*pixelWidth+0, y*pixelWidth+1, col)
+		// 	img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+		// 	img.Set(x*pixelWidth+2, y*pixelWidth+1, col)
+
+		// 	img.Set(x*pixelWidth+0, y*pixelWidth+2, col)
+		// 	img.Set(x*pixelWidth+1, y*pixelWidth+2, col)
+		// 	img.Set(x*pixelWidth+2, y*pixelWidth+2, col)
+
+		// if particle.rotating != 0 {
+
+		// 	particle.rotating = 0
+
+		// 	img.Set(x*pixelWidth+1, y*pixelWidth+0, col)
+
+		// 	img.Set(x*pixelWidth+0, y*pixelWidth+1, col)
+		// 	img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+		// 	img.Set(x*pixelWidth+2, y*pixelWidth+1, col)
+
+		// 	img.Set(x*pixelWidth+1, y*pixelWidth+2, col)
+
+		// } else {
+
+		// 	particle.rotating = 1
+
+		// 	img.Set(x*pixelWidth+0, y*pixelWidth+0, col)
+		// 	img.Set(x*pixelWidth+2, y*pixelWidth+0, col)
+
+		// 	img.Set(x*pixelWidth+1, y*pixelWidth+1, col)
+
+		// 	img.Set(x*pixelWidth+0, y*pixelWidth+2, col)
+		// 	img.Set(x*pixelWidth+2, y*pixelWidth+2, col)
+		// }
+
+	} else {
+		for i := 0; i < pixelWidth; i++ {
+			for j := 0; j < pixelWidth; j++ {
+				img.Set(x*pixelWidth+i, y*pixelWidth+j, col)
+			}
+		}
+	}
 }
 
 func savematrixParticlesImage(img *image.RGBA, w http.ResponseWriter) {

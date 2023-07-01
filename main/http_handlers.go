@@ -171,17 +171,9 @@ func particles_handler_gif(resp_writer http.ResponseWriter, r *http.Request) {
 	http_handler_before_end(resp_writer, r, "particles_gif", false)
 }
 
-func particles_handler_clear_db(resp_writer http.ResponseWriter, r *http.Request) {
+func clear_db_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	clear_db()
 
 	http_handler_before_end(resp_writer, r, "database has been cleared", true)
 }
-
-// func performance_chart_handler(resp_writer http.ResponseWriter, r *http.Request) {
-//
-// 	nanosec := time.Now().UnixNano()
-// 	answer := fmt.Sprint(nanosec)
-//
-// 	http_handler_before_end(resp_writer, r, answer, true)
-// }
