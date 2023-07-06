@@ -12,6 +12,8 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/disintegration/imaging"
 )
 
 const (
@@ -25,6 +27,7 @@ var needToFallColor = color.RGBA{0, 0, 255, 255} // color.RGBA{0, 116, 217, 255}
 var backColor = color.RGBA{200, 200, 200, 255}
 var maxVolatility = 20 // летучесть, чем выше тем ниже скорость падения
 var maxObstaclesPircent float32 = 0.15
+var imageRotateAngle float64 = 1.0
 
 type Particle struct {
 	X, Y              int
@@ -77,6 +80,7 @@ func drawParticlesToMatrixMakeOneStep() (isMatrixStartedFromBegin bool) {
 		rand.Seed(time.Now().UnixNano())
 		matrixParticles = generatematrixParticles()
 		generateParticlesobstacles(matrixParticles)
+		generateBorder(matrixParticles)
 		generateParticleToMove(matrixParticles)
 	}
 
@@ -129,11 +133,36 @@ func generateParticlesobstacles(matrixParticles [][]Particle) {
 	}
 }
 
+func generateBorder(matrixParticles [][]Particle) {
+
+	for row := 0; row < Height; row++ {
+		for col := 0; col < Width; col++ {
+
+			if row != 0 && row != (Height-1) {
+				if col != 0 && col != (Width-1) {
+					continue
+				}
+			}
+
+			// var cell *Particle = &matrixParticles[col][row]
+			// cell.Fallen = true
+			// cell.X = col
+			// cell.Y = row
+			// cell.needToFall = false
+
+			matrixParticles[row][col].Fallen = true
+			matrixParticles[row][col].X = col
+			matrixParticles[row][col].Y = row
+			matrixParticles[row][col].needToFall = false
+		}
+	}
+}
+
 func generateParticleToMove(matrixParticles [][]Particle) {
-	x := rand.Intn(Width)
+	x := rand.Intn(Width-10) + 5
 	matrixParticles[0][x].Fallen = false
 	matrixParticles[0][x].X = x
-	matrixParticles[0][x].Y = 0
+	matrixParticles[0][x].Y = Height / 2.0
 	matrixParticles[0][x].needToFall = true
 	matrixParticles[0][x].volatility = rand.Intn(maxVolatility)
 	matrixParticles[0][x].initialVolatility = matrixParticles[0][x].volatility
@@ -227,55 +256,85 @@ func getPaticlesToMove(matrixParticles [][]Particle) []Particle {
 	return particleToMove
 }
 
+func realRotateAngle() float64 {
+
+	return imageRotateAngle + 90
+
+}
+
+// func steDown() float64 {
+
+// 	return imageRotateAngle - 90
+
+// }
+
 func moveParticle(particle *Particle, matrixParticles [][]Particle) {
 
 	y := particle.Y
 	x := particle.X
 
+	// var downCellY int = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
+	// var leftCellX int = int(math.Round(float64(x) - 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
+	// var rightCellX int = int(math.Round(float64(x) + 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
+
+	// var downCellY int = y + 1
+	// var leftCellX int = x - 1
+	// var rightCellX int = x + 1
+
 	movingParticle := &matrixParticles[y][x]
 
-	bottomCellFill := y == Height-1 || matrixParticles[y+1][x].Fallen
-	bottomRightCellFill := y == Height-1 || matrixParticles[y+1][int(math.Min(float64(x+1), float64(Width-1)))].Fallen || matrixParticles[y+1][int(math.Min(float64(x+1), float64(Width-1)))].needToFall
-	bottomLeftCellFill := y == Height-1 || matrixParticles[y+1][int(math.Max(float64(x-1), float64(0)))].Fallen || matrixParticles[y+1][int(math.Max(float64(x-1), float64(0)))].needToFall
-	rightCellFill := matrixParticles[y][int(math.Min(float64(x+1), float64(Width-1)))].Fallen || matrixParticles[y][int(math.Min(float64(x+1), float64(Width-1)))].needToFall
-	leftCellFill := matrixParticles[y][int(math.Max(float64(x-1), float64(0)))].Fallen || matrixParticles[y][int(math.Max(float64(x-1), float64(0)))].needToFall
+	// bottomCellFill := y == Height-1 || matrixParticles[downCellY][x].Fallen
+	// bottomRightCellFill := y == Height-1 || matrixParticles[downCellY][int(math.Min(float64(rightCellX), float64(Width-1)))].Fallen || matrixParticles[downCellY][int(math.Min(float64(rightCellX), float64(Width-1)))].needToFall
+	// bottomLeftCellFill := y == Height-1 || matrixParticles[downCellY][int(math.Max(float64(leftCellX), float64(0)))].Fallen || matrixParticles[downCellY][int(math.Max(float64(leftCellX), float64(0)))].needToFall
+	// rightCellFill := matrixParticles[y][int(math.Min(float64(rightCellX), float64(Width-1)))].Fallen || matrixParticles[y][int(math.Min(float64(rightCellX), float64(Width-1)))].needToFall
+	// leftCellFill := matrixParticles[y][int(math.Max(float64(leftCellX), float64(0)))].Fallen || matrixParticles[y][int(math.Max(float64(leftCellX), float64(0)))].needToFall
 
-	if y == Height-1 ||
-		bottomCellFill && bottomRightCellFill && bottomLeftCellFill ||
-		bottomCellFill && rightCellFill && leftCellFill {
+	// if y == Height-1 ||
+	// 	bottomCellFill && bottomRightCellFill && bottomLeftCellFill ||
+	// 	bottomCellFill && rightCellFill && leftCellFill {
 
-		movingParticle.Fallen = true
-		movingParticle.needToFall = false
-	} else {
+	// 	movingParticle.Fallen = true
+	// 	movingParticle.needToFall = false
+	// } else {
 
-		movingParticle.Fallen = false
-		movingParticle.needToFall = false
+	movingParticle.Fallen = false
+	movingParticle.needToFall = false
 
-		if bottomCellFill && !bottomLeftCellFill && !leftCellFill {
-			x--
-			y++
-		} else if bottomCellFill && !bottomRightCellFill && !rightCellFill {
-			x++
-			y++
-		} else if !bottomCellFill {
-			y++
-		} else if bottomCellFill {
-			movingParticle.Fallen = true
-			movingParticle.needToFall = false
-		}
+	// if bottomCellFill && !bottomLeftCellFill && !leftCellFill {
+	// 	x = int(math.Round(float64(x) - 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
+	// 	y = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
+	// 	// x = x - 1
+	// 	// y = y + 1
+	// } else if bottomCellFill && !bottomRightCellFill && !rightCellFill {
+	// 	x = int(math.Round(float64(x) + 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
+	// 	y = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
+	// 	// x = x + 1
+	// 	// y = y + 1
+	// } else if !bottomCellFill {
+	x = int(math.Round(float64(x) + 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
+	y = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
+	// y = y + 1
+	// } else if bottomCellFill {
+	// 	movingParticle.Fallen = true
+	// 	movingParticle.needToFall = false
+	// }
 
-		if !movingParticle.Fallen {
-			initialVolatility := movingParticle.initialVolatility
-			rotating := movingParticle.rotating
-			movingParticle = &matrixParticles[y][x]
-			movingParticle.X = x
-			movingParticle.Y = y
-			movingParticle.Fallen = false
-			movingParticle.needToFall = true
-			movingParticle.initialVolatility = initialVolatility
-			movingParticle.rotating = rotating
-		}
+	if x < 0 || y < 0 || x >= Width || y >= Height {
+		return
 	}
+
+	if !movingParticle.Fallen {
+		initialVolatility := movingParticle.initialVolatility
+		rotating := movingParticle.rotating
+		movingParticle = &matrixParticles[y][x]
+		movingParticle.X = x
+		movingParticle.Y = y
+		movingParticle.Fallen = false
+		movingParticle.needToFall = true
+		movingParticle.initialVolatility = initialVolatility
+		movingParticle.rotating = rotating
+	}
+	// }
 }
 
 func convertMatixToImg(matrixParticles *[][]Particle) *image.RGBA {
@@ -306,7 +365,38 @@ func convertMatixToImg(matrixParticles *[][]Particle) *image.RGBA {
 			drawParticle(img, pixelWidth, x, y, col, isFalling, curParticiple)
 		}
 	}
+
+	img = rotateImage(img, imageRotateAngle)
+	imageRotateAngle = imageRotateAngle + 1
+
 	return img
+}
+
+func rotateImage(src *image.RGBA, angle float64) *image.RGBA {
+	// Создаем новое изображение с теми же размерами
+	dst := image.NewRGBA(src.Bounds())
+
+	// Поворачиваем изображение
+	draw.Draw(dst, dst.Bounds(), src, src.Bounds().Min, draw.Src)
+	rotated := imaging.Rotate(dst, angle, color.Transparent)
+
+	//return rotated.(*image.RGBA)
+	return convertNRGBAToRGBA(rotated)
+
+}
+
+func convertNRGBAToRGBA(src *image.NRGBA) *image.RGBA {
+	bounds := src.Bounds()
+	// width := bounds.Dx()
+	// height := bounds.Dy()
+
+	// Создаем новое изображение с теми же размерами
+	dst := image.NewRGBA(bounds)
+
+	// Копируем каждый пиксель из исходного изображения в новое изображение
+	draw.Draw(dst, bounds, src, bounds.Min, draw.Src)
+
+	return dst
 }
 
 func drawParticle(img *image.RGBA, pixelWidth int, x int, y int, col color.RGBA, isFalling bool, particle *Particle) {
