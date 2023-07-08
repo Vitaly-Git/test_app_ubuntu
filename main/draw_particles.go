@@ -50,10 +50,10 @@ func writeParticlesPngToResponse(resp_writer http.ResponseWriter, rotating bool)
 
 	if rotating {
 		matrixParticlesRotated, _ = drawParticlesToMatrixMakeOneStep(matrixParticlesRotated, rotating)
-		img = convertMatixToImg(matrixParticlesRotated)
+		img = convertMatixToImg(matrixParticlesRotated, rotating)
 	} else {
 		matrixParticlesWithOutRotating, _ = drawParticlesToMatrixMakeOneStep(matrixParticlesWithOutRotating, rotating)
-		img = convertMatixToImg(matrixParticlesWithOutRotating)
+		img = convertMatixToImg(matrixParticlesWithOutRotating, rotating)
 	}
 
 	savematrixParticlesImage(img, resp_writer)
@@ -70,7 +70,7 @@ func writeParticlesGifToResponse(resp_writer http.ResponseWriter, rotating bool)
 	if rotating {
 		for isMatrixStartedFromBegin := false; isMatrixStartedFromBegin == false; matrixParticlesRotated, isMatrixStartedFromBegin = drawParticlesToMatrixMakeOneStep(matrixParticlesRotated, rotating) {
 
-			imgRGDA := convertMatixToImg(matrixParticlesRotated)
+			imgRGDA := convertMatixToImg(matrixParticlesRotated, rotating)
 
 			bounds := imgRGDA.Bounds()
 			palettedImage := image.NewPaletted(bounds, palette.Plan9)
@@ -82,7 +82,7 @@ func writeParticlesGifToResponse(resp_writer http.ResponseWriter, rotating bool)
 	} else {
 		for isMatrixStartedFromBegin := false; isMatrixStartedFromBegin == false; matrixParticlesWithOutRotating, isMatrixStartedFromBegin = drawParticlesToMatrixMakeOneStep(matrixParticlesWithOutRotating, rotating) {
 
-			imgRGDA := convertMatixToImg(matrixParticlesWithOutRotating)
+			imgRGDA := convertMatixToImg(matrixParticlesWithOutRotating, rotating)
 
 			bounds := imgRGDA.Bounds()
 			palettedImage := image.NewPaletted(bounds, palette.Plan9)
@@ -101,7 +101,7 @@ func drawParticlesToMatrixMakeOneStep(matrixParticles matrixParticlesPtrType, ro
 	if ismatrixParticlesFree(matrixParticles) || ismatrixParticlesFull(matrixParticles) {
 		rand.Seed(time.Now().UnixNano())
 		matrixParticles = generateMatrixParticles(matrixParticles)
-		generateParticlesobstacles(matrixParticles)
+		generateParticlesobstacles(matrixParticles, rotating)
 		generateBorder(matrixParticles)
 		generateParticleToMove(matrixParticles, rotating)
 	}
@@ -127,11 +127,18 @@ func generateMatrixParticles(matrixParticles matrixParticlesPtrType) matrixParti
 	return matrixParticles
 }
 
-func generateParticlesobstacles(matrixParticles matrixParticlesPtrType) {
+func generateParticlesobstacles(matrixParticles matrixParticlesPtrType, rotating bool) {
 
 	Height := len(*matrixParticles)
 	Width := len((*matrixParticles)[Height-1])
-	maxObstaclesPircent := 0.05
+
+	var maxObstaclesPircent float64
+
+	if rotating {
+		maxObstaclesPircent = 0.05
+	} else {
+		maxObstaclesPircent = 0.15
+	}
 
 	countObstacles := rand.Intn(int(float64(Width) * float64(Height) * maxObstaclesPircent))
 
@@ -182,8 +189,10 @@ func generateParticleToMove(matrixParticles matrixParticlesPtrType, generateInCe
 	var y int
 
 	if generateInCenter {
-		x = rand.Intn(int(float64(Width)*0.4)) + int(float64(Width)/2.0) - int(float64(Width)*0.2)
-		y = int(Height / 2.0)
+		// x = rand.Intn(int(float64(Width)*0.4)) + int(float64(Width)/2.0) - int(float64(Width)*0.2)
+		// y = int(Height / 2.0)
+		x = rand.Intn(Width-2) + 1
+		y = rand.Intn(Height-2) + 1
 	} else {
 		x = rand.Intn(Width-10) + 5
 		y = 1
@@ -488,132 +497,51 @@ func moveParticleWithOutRotate(particle *Particle, matrixParticles matrixParticl
 	y := particle.Y
 	x := particle.X
 
-	var currCellY int = int(math.Round(float64(y)))
-	// var currCellX int = int(math.Round(float64(x)))
-
-	var downCellY int = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
-	var downCellX int = int(math.Round(float64(x) + 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
-
-	var leftCellX int = int(math.Round(float64(x) - 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
-	var rightCellX int = int(math.Round(float64(x) + 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
-
-	// currCellY = int(math.Min(float64(currCellY), Height-1))
-	// downCellY = int(math.Min(float64(downCellY), Height-1))
-
-	// currCellX = int(math.Min(float64(currCellX), Width-1))
-	// leftCellX = int(math.Min(float64(leftCellX), Width-1))
-	// rightCellX = int(math.Min(float64(rightCellX), Width-1))
-
-	// currCellY = int(math.Max(float64(currCellY), 0))
-	// downCellY = int(math.Max(float64(downCellY), 0))
-
-	// currCellX = int(math.Max(float64(currCellX), 0))
-	// leftCellX = int(math.Max(float64(leftCellX), 0))
-	// rightCellX = int(math.Max(float64(rightCellX), 0))
-
-	// var downCellY int = y + 1
-	// var leftCellX int = x - 1
-	// var rightCellX int = x + 1
-
 	movingParticle := &(*matrixParticles)[y][x]
 
-	// bottomCellFill := y == Height-1 || matrixParticles[downCellY][x].Fallen
-	// bottomRightCellFill := y == Height-1 || matrixParticles[downCellY][int(math.Min(float64(rightCellX), float64(Width-1)))].Fallen || matrixParticles[downCellY][int(math.Min(float64(rightCellX), float64(Width-1)))].needToFall
-	// bottomLeftCellFill := y == Height-1 || matrixParticles[downCellY][int(math.Max(float64(leftCellX), float64(0)))].Fallen || matrixParticles[downCellY][int(math.Max(float64(leftCellX), float64(0)))].needToFall
-	// rightCellFill := matrixParticles[y][int(math.Min(float64(rightCellX), float64(Width-1)))].Fallen || matrixParticles[y][int(math.Min(float64(rightCellX), float64(Width-1)))].needToFall
-	// leftCellFill := matrixParticles[y][int(math.Max(float64(leftCellX), float64(0)))].Fallen || matrixParticles[y][int(math.Max(float64(leftCellX), float64(0)))].needToFall
+	bottomCellFill := y == Height-1 || (*matrixParticles)[y+1][x].Fallen
+	bottomRightCellFill := y == Height-1 || (*matrixParticles)[y+1][int(math.Min(float64(x+1), float64(Width-1)))].Fallen || (*matrixParticles)[y+1][int(math.Min(float64(x+1), float64(Width-1)))].needToFall
+	bottomLeftCellFill := y == Height-1 || (*matrixParticles)[y+1][int(math.Max(float64(x-1), float64(0)))].Fallen || (*matrixParticles)[y+1][int(math.Max(float64(x-1), float64(0)))].needToFall
+	rightCellFill := (*matrixParticles)[y][int(math.Min(float64(x+1), float64(Width-1)))].Fallen || (*matrixParticles)[y][int(math.Min(float64(x+1), float64(Width-1)))].needToFall
+	leftCellFill := (*matrixParticles)[y][int(math.Max(float64(x-1), float64(0)))].Fallen || (*matrixParticles)[y][int(math.Max(float64(x-1), float64(0)))].needToFall
 
-	bottomCellFill := (*matrixParticles)[downCellY][downCellX].Fallen
-	bottomRightCellFill := (*matrixParticles)[downCellY][rightCellX].Fallen || (*matrixParticles)[downCellY][rightCellX].needToFall
-	bottomLeftCellFill := (*matrixParticles)[downCellY][leftCellX].Fallen || (*matrixParticles)[downCellY][leftCellX].needToFall
-	rightCellFill := (*matrixParticles)[currCellY][rightCellX].Fallen || (*matrixParticles)[currCellY][rightCellX].needToFall
-	leftCellFill := (*matrixParticles)[currCellY][leftCellX].Fallen || (*matrixParticles)[currCellY][leftCellX].needToFall
-
-	// if y == Height-1 ||
-	// 	bottomCellFill && bottomRightCellFill && bottomLeftCellFill ||
-	// 	bottomCellFill && rightCellFill && leftCellFill {
-
-	// 	movingParticle.Fallen = true
-	// 	movingParticle.needToFall = false
-	// } else {
-
-	if bottomCellFill && bottomRightCellFill && bottomLeftCellFill ||
+	if y == Height-1 ||
+		bottomCellFill && bottomRightCellFill && bottomLeftCellFill ||
 		bottomCellFill && rightCellFill && leftCellFill {
 
 		movingParticle.Fallen = true
 		movingParticle.needToFall = false
-
 	} else {
 
 		movingParticle.Fallen = false
 		movingParticle.needToFall = false
 
-		// // if bottomCellFill && !bottomLeftCellFill && !leftCellFill {
-		// // 	x = int(math.Round(float64(x) - 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
-		// // 	y = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
-		// // 	// x = x - 1
-		// // 	// y = y + 1
-		// // } else if bottomCellFill && !bottomRightCellFill && !rightCellFill {
-		// // 	x = int(math.Round(float64(x) + 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
-		// // 	y = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
-		// // 	// x = x + 1
-		// // 	// y = y + 1
-		// // } else if !bottomCellFill {
-		// x = int(math.Round(float64(x) + 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
-		// y = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
-		// // y = y + 1
-		// // } else if bottomCellFill {
-		// // 	movingParticle.Fallen = true
-		// // 	movingParticle.needToFall = false
-		// // }
-
-		// if bottomCellFill && !bottomLeftCellFill && !leftCellFill {
-		// 	x = int(math.Round(float64(x) - 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
-		// 	y = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
-		// 	// x = x - 1
-		// 	// y = y + 1
-		// } else if bottomCellFill && !bottomRightCellFill && !rightCellFill {
-		// 	x = int(math.Round(float64(x) + 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
-		// 	y = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
-		// 	// x = x + 1
-		// 	// y = y + 1
-		// } else
-
-		if !bottomCellFill {
-			x = int(math.Round(float64(x) + 1.0*math.Cos(realRotateAngle()*math.Pi/180)))
-			y = int(math.Round(float64(y) + 1.0*math.Sin(realRotateAngle()*math.Pi/180)))
-			// y = y + 1
+		if bottomCellFill && !bottomLeftCellFill && !leftCellFill {
+			x--
+			y++
+		} else if bottomCellFill && !bottomRightCellFill && !rightCellFill {
+			x++
+			y++
+		} else if !bottomCellFill {
+			y++
 		} else if bottomCellFill {
 			movingParticle.Fallen = true
 			movingParticle.needToFall = false
 		}
 
-		// if x < 0 || y < 0 || x >= Width || y >= Height {
-		// 	return
-		// }
-
-		y = int(math.Min(float64(y), float64(Height-1)))
-		x = int(math.Min(float64(x), float64(Width-1)))
-
-		y = int(math.Max(float64(y), 0))
-		x = int(math.Max(float64(x), 0))
-
 		if !movingParticle.Fallen {
 			initialVolatility := movingParticle.initialVolatility
-			rotating := movingParticle.rotating
 			movingParticle = &(*matrixParticles)[y][x]
 			movingParticle.X = x
 			movingParticle.Y = y
 			movingParticle.Fallen = false
 			movingParticle.needToFall = true
 			movingParticle.initialVolatility = initialVolatility
-			movingParticle.rotating = rotating
 		}
-
 	}
 }
 
-func convertMatixToImg(matrixParticles matrixParticlesPtrType) *image.RGBA {
+func convertMatixToImg(matrixParticles matrixParticlesPtrType, rotating bool) *image.RGBA {
 
 	Height := len(*matrixParticles)
 	Width := len((*matrixParticles)[Height-1])
@@ -646,8 +574,10 @@ func convertMatixToImg(matrixParticles matrixParticlesPtrType) *image.RGBA {
 		}
 	}
 
-	img = rotateImage(img, imageRotateAngle)
-	imageRotateAngle = imageRotateAngle + 1
+	if rotating {
+		img = rotateImage(img, imageRotateAngle)
+		imageRotateAngle = imageRotateAngle + 1
+	}
 
 	return img
 }
