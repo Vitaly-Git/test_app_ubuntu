@@ -7,17 +7,18 @@ import (
 	"time"
 )
 
-func http_handler_before_end(resp_writer http.ResponseWriter, r *http.Request, answer string, WriteAnswerToResp bool) {
+func http_handler_before_end(resp_writer http.ResponseWriter, r *http.Request, answer string, WriteAnswerToResp bool, addRespToDb bool) {
 
 	add_https_cros_header_for_between_domain_request(resp_writer)
-
-	fmt.Printf("Answer: %s\n", answer)
 
 	if WriteAnswerToResp {
 		fmt.Fprintf(resp_writer, "%s", answer)
 	}
 
-	add_connect_params_to_db(r, answer)
+	if addRespToDb {
+		fmt.Printf("Answer: %s\n", answer)
+		add_connect_params_to_db(r, answer)
+	}
 }
 
 func root_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -33,7 +34,7 @@ func root_handler(resp_writer http.ResponseWriter, r *http.Request) {
 		answer += fmt.Sprintf("%s\n", value)
 	}
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 }
 
 func ap_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -47,7 +48,7 @@ func ap_handler(resp_writer http.ResponseWriter, r *http.Request) {
 		answer = "Bad param"
 	}
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 }
 
 func gp2_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -61,7 +62,7 @@ func gp2_handler(resp_writer http.ResponseWriter, r *http.Request) {
 		answer = "Bad param"
 	}
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 }
 
 func inc_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -76,7 +77,7 @@ func inc_handler(resp_writer http.ResponseWriter, r *http.Request) {
 		answer = "Bad param"
 	}
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 }
 
 func exit_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -84,7 +85,7 @@ func exit_handler(resp_writer http.ResponseWriter, r *http.Request) {
 	answer := fmt.Sprintf("Client: %s request: %s\n", r.RemoteAddr, r.URL.Path)
 	answer += "service going to shutting down\n"
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 
 	chEndService <- answer
 }
@@ -98,7 +99,7 @@ func autotest_start_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	go autotest_selfconnect()
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 }
 
 func autotest_stop_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -108,7 +109,7 @@ func autotest_stop_handler(resp_writer http.ResponseWriter, r *http.Request) {
 	answer := fmt.Sprintf("Client: %s request: %s\n", r.RemoteAddr, r.URL.Path)
 	answer += "autotest mode shutingdown...\n"
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 }
 
 func revers_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -117,14 +118,14 @@ func revers_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	answer := revers_string(stringToRevers)
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 }
 
 func echo_string_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	answer := get_param_string(r)
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 }
 
 func timestamp_handler(resp_writer http.ResponseWriter, r *http.Request) {
@@ -132,14 +133,14 @@ func timestamp_handler(resp_writer http.ResponseWriter, r *http.Request) {
 	nanosec := time.Now().UnixNano()
 	answer := fmt.Sprint(nanosec)
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 }
 
 func lissajous_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	lissajous(resp_writer)
 
-	http_handler_before_end(resp_writer, r, "lissajous", false)
+	http_handler_before_end(resp_writer, r, "lissajous", false, false)
 
 }
 
@@ -147,47 +148,47 @@ func connections_history_handler(resp_writer http.ResponseWriter, r *http.Reques
 
 	answer := get_connections_history()
 
-	http_handler_before_end(resp_writer, r, answer, true)
+	http_handler_before_end(resp_writer, r, answer, true, true)
 }
 
 func connections_chart_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	drawChart(resp_writer, r)
 
-	http_handler_before_end(resp_writer, r, "history chart", false)
+	http_handler_before_end(resp_writer, r, "history chart", false, true)
 }
 
 func particles_handler_png(resp_writer http.ResponseWriter, r *http.Request) {
 
 	writeParticlesPngToResponse(resp_writer, false)
 
-	http_handler_before_end(resp_writer, r, "particles_png", false)
+	http_handler_before_end(resp_writer, r, "particles_png", false, false)
 }
 
 func particles_handler_gif(resp_writer http.ResponseWriter, r *http.Request) {
 
 	writeParticlesGifToResponse(resp_writer, false)
 
-	http_handler_before_end(resp_writer, r, "particles_gif", false)
+	http_handler_before_end(resp_writer, r, "particles_gif", false, false)
 }
 
 func particles_handler_rotating_png(resp_writer http.ResponseWriter, r *http.Request) {
 
 	writeParticlesPngToResponse(resp_writer, true)
 
-	http_handler_before_end(resp_writer, r, "particles_rotating_png", false)
+	http_handler_before_end(resp_writer, r, "particles_rotating_png", false, false)
 }
 
 func particles_handler_rotating_gif(resp_writer http.ResponseWriter, r *http.Request) {
 
 	writeParticlesGifToResponse(resp_writer, true)
 
-	http_handler_before_end(resp_writer, r, "particles_rotating_gif", false)
+	http_handler_before_end(resp_writer, r, "particles_rotating_gif", false, false)
 }
 
 func clear_db_handler(resp_writer http.ResponseWriter, r *http.Request) {
 
 	clear_db()
 
-	http_handler_before_end(resp_writer, r, "database has been cleared", true)
+	http_handler_before_end(resp_writer, r, "database has been cleared", true, true)
 }

@@ -24,7 +24,7 @@ var helpMap = make(map[string]string)
 var autotest_running bool
 
 var useHttps bool
-var debug_local_ip net.IP = []byte{192, 168, 1, 187}
+var debug_local_ip net.IP = []byte{192, 168, 0, 229}
 
 func init() {
 

@@ -44,16 +44,62 @@ type matrixParticlesPtrType *[][]Particle
 var matrixParticlesWithOutRotating matrixParticlesPtrType
 var matrixParticlesRotated matrixParticlesPtrType
 
+var imgRotating *image.RGBA
+var imgWithOutRotating *image.RGBA
+
+type cashLastUpdateType struct {
+	lastUpdateTime map[matrixParticlesPtrType]int64
+	lastImg        map[matrixParticlesPtrType]*image.RGBA
+}
+
+var cashLastUpdate cashLastUpdateType
+
+func (cash cashLastUpdateType) getCashLastUpdate(matrixParticlesPtr matrixParticlesPtrType) int64 {
+
+	if cash.lastUpdateTime == nil {
+		cashLastUpdate.lastUpdateTime = make(map[matrixParticlesPtrType]int64)
+		cashLastUpdate.lastImg = make(map[matrixParticlesPtrType]*image.RGBA)
+	}
+
+	return cashLastUpdate.lastUpdateTime[matrixParticlesPtr]
+}
+
+func (cash cashLastUpdateType) setCashLastUpdate(matrixParticlesPtr matrixParticlesPtrType) {
+	cashLastUpdate.lastUpdateTime[matrixParticlesPtr] = time.Now().UnixNano()
+}
+
+//var cashLastUpdate map[matrixParticlesPtrType]int64 = make(map[matrixParticlesPtrType]int64)
+
 func writeParticlesPngToResponse(resp_writer http.ResponseWriter, rotating bool) {
 
 	var img *image.RGBA
+	var maxTtlInCashMs int64 = 100 * 1000 * 1000
 
 	if rotating {
-		matrixParticlesRotated, _ = drawParticlesToMatrixMakeOneStep(matrixParticlesRotated, rotating)
-		img = convertMatixToImg(matrixParticlesRotated, rotating)
+
+		curTime := time.Now().UnixNano()
+		lastUpdTime := cashLastUpdate.getCashLastUpdate(matrixParticlesRotated)
+		prevGen := curTime - lastUpdTime
+
+		if prevGen > maxTtlInCashMs {
+			matrixParticlesRotated, _ = drawParticlesToMatrixMakeOneStep(matrixParticlesRotated, rotating)
+			imgRotating = convertMatixToImg(matrixParticlesRotated, rotating)
+			cashLastUpdate.setCashLastUpdate(matrixParticlesRotated)
+		}
+		img = imgRotating
+
 	} else {
-		matrixParticlesWithOutRotating, _ = drawParticlesToMatrixMakeOneStep(matrixParticlesWithOutRotating, rotating)
-		img = convertMatixToImg(matrixParticlesWithOutRotating, rotating)
+
+		curTime := time.Now().UnixNano()
+		lastUpdTime := cashLastUpdate.getCashLastUpdate(matrixParticlesWithOutRotating)
+		prevGen := curTime - lastUpdTime
+
+		if prevGen > maxTtlInCashMs {
+			matrixParticlesWithOutRotating, _ = drawParticlesToMatrixMakeOneStep(matrixParticlesWithOutRotating, rotating)
+			imgWithOutRotating = convertMatixToImg(matrixParticlesWithOutRotating, rotating)
+			cashLastUpdate.setCashLastUpdate(matrixParticlesWithOutRotating)
+		}
+		img = imgWithOutRotating
 	}
 
 	savematrixParticlesImage(img, resp_writer)
